@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>6CF579B8-E96D-486F-B535-BCC2B8EE46F9</string>
+	<key>IDESourceControlProjectName</key>
+	<string>ShootEggs</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>FD325438B7AD6852C5C36711E59D419FC9EEA5D2</key>
+		<string>https://github.com/phucnd0604/Shooting-frenzy.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>ShootEggs/ShootEggs.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>FD325438B7AD6852C5C36711E59D419FC9EEA5D2</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/phucnd0604/Shooting-frenzy.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>FD325438B7AD6852C5C36711E59D419FC9EEA5D2</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>FD325438B7AD6852C5C36711E59D419FC9EEA5D2</string>
+			<key>IDESourceControlWCCName</key>
+			<string>Shooting-frenzy</string>
+		</dict>
+	</array>
+</dict>
+</plist>
