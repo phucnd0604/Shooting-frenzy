@@ -10,7 +10,7 @@ import Foundation
 import SpriteKit
 
 enum EggType: Int, Printable {
-  case Unknown = 0, Red, Blue, White
+  case Unknown = 0, Red = 1, Blue = 2, White = 3
   var eggName: String {
     let eggNames = ["red", "blue", "white"]
     return eggNames[rawValue - 1]

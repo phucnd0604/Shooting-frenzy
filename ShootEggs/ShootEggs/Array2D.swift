@@ -8,9 +8,13 @@
 
 import Foundation
 struct Array2D<T> {
-  let columns: Int
-  let rows: Int
-  private var array: Array<T?>
+  var columns: Int {
+    didSet {
+      
+    }
+  }
+  var rows: Int
+  var array: Array<T?>
   
   init(columns: Int, rows: Int) {
     self.columns = columns
@@ -20,7 +24,8 @@ struct Array2D<T> {
   
   subscript(column: Int, row: Int) -> T? {
     get {
-      return array[row*columns + column]
+      if ((row*columns + column) > array.count) {return nil}
+        return array[row*columns + column]
     }
     set {
       array[row*columns + column] = newValue

@@ -68,5 +68,6 @@ class GameViewController: UIViewController {
   func shuffle() {
     let newCookies = level.shuffle()
     sence.addEggs(newCookies)
+    sence.addFireEgg()
   }
 }

@@ -13,6 +13,7 @@ var rowsNumber = 9
 
 class Level {
   var eggs = Array2D<EggNote>(columns: columsNumber, rows: rowsNumber)
+  var set = Set<EggNote>()
   func eggColumn(column: Int, row: Int) -> EggNote? {
     assert(column >= 0 && column < columsNumber)
     assert(row >= 0 && row < rowsNumber)
@@ -33,11 +34,13 @@ class Level {
         var eggType = EggType.random()
         // 3 create egg and add to eggs array
         let egg = EggNote(imageName: eggType.eggName, column: column, row: row, type: eggType)
+        println(egg)
         eggs[column, row] = egg
         // 4 
         set.insert(egg)
       }
     }
+    self.set = set
     return set
   }
 }
