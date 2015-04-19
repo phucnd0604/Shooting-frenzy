@@ -12,7 +12,7 @@ import SpriteKit
 enum EggType: Int, Printable {
   case Unknown = 0, Red = 1, Blue = 2, White = 3
   var eggName: String {
-    let eggNames = ["red", "blue", "white"]
+    let eggNames = ["ball_2", "ball_4", "ball_0"]
     return eggNames[rawValue - 1]
   }
   var description: String {
@@ -27,6 +27,7 @@ class EggNote: SKSpriteNode, Hashable {
   var column: Int!
   var row: Int!
   var eggType: EggType!
+  var mustbeDestroy = false
   override var hashValue: Int {
     return row*10 + column
   }

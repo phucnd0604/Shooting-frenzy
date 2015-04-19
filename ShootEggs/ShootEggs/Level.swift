@@ -9,7 +9,7 @@
 import Foundation
 
 var columsNumber = 9
-var rowsNumber = 9
+var rowsNumber = 20
 
 class Level {
   var eggs = Array2D<EggNote>(columns: columsNumber, rows: rowsNumber)

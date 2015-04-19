@@ -51,7 +51,7 @@ class GameScene: SKScene {
   
   var level: Level!
   let TileWidth: CGFloat = 30.0
-  let TileHeight: CGFloat = 36.0
+  let TileHeight: CGFloat = 30.0
   let gameLayer = SKNode()
   let eggsLayer = SKNode()
   var lastUpdateTime: CFTimeInterval = 0
@@ -183,7 +183,7 @@ class GameScene: SKScene {
     }
     fireEgg.column = column
     fireEgg.row = row
-    fireEgg.position = CGPoint(x: egg.position.x, y: egg.position.y - 36)
+    fireEgg.position = CGPoint(x: egg.position.x, y: egg.position.y - 30)
     level.eggs.columns = columsNumber
     level.eggs.rows = rowsNumber
     fireEgg.physicsBody?.categoryBitMask = PhysicsCategory.Egg
@@ -195,55 +195,144 @@ class GameScene: SKScene {
     let actionMove = SKAction.moveTo(fireEgg.position, duration: 0)
     fireEgg.runAction(actionMove)
     if fireEgg.position.y < 30 {
+      fatalError("End game")
       self.removeFromParent()
       return
     }
-    let chain = findChainEggs(egg)
-    if chain.count > 2 {
-    for egg in  findChainEggs(fireEgg) {
+    let count = findChainEggs(fireEgg, matchType: fireEgg.eggType)
+    println("count:\(count)")
+    if count > 2 {
+    for anEgg in  level.set {
+      if anEgg.mustbeDestroy {
       let actionDisApear = SKAction.scaleBy(0.1, duration: 0.25)
-      egg.runAction(actionDisApear, completion: {
-        
-        egg.removeFromParent()
+      anEgg.runAction(actionDisApear, completion: {
+        anEgg.removeFromParent()
       })
+      }
     }
+    } else {
+      for anEgg in level.set {
+        anEgg.mustbeDestroy = false
+      }
     }
     addFireEgg()
   }
-  func findChainEggs(egg: EggNote) -> Set<EggNote>{
-    var chain = Set<EggNote>()
-    chain.insert(egg)
-    // horizontal chain
-      for coll in egg.column..<rowsNumber {
-        if let aEgg = level.eggs[coll, egg.row] {
-          if aEgg.eggType == egg.eggType {
-            chain.insert(aEgg)
-          } else {
-            break
-          }
-        }
-      }
-      for coll in reverse(0..<egg.column) {
-        if let aEgg = level.eggs[coll, egg.row] {
-          if aEgg.eggType == egg.eggType {
-            chain.insert(aEgg)
-          } else {
-            break
-          }
-        }
-      }
-    // vertical chain
-    for row in reverse(0..<rowsNumber) {
-      if let aEgg = level.eggs[egg.column, row] {
-        if aEgg.eggType == egg.eggType {
-          chain.insert(aEgg)
-        } else {
-          break
+  func findChainEggs(egg: EggNote, matchType: EggType) -> Int{
+//    var chain = Set<EggNote>()
+//    chain.insert(egg)
+//    // horizontal chain
+//      for coll in egg.column..<rowsNumber {
+//        if let aEgg = level.eggs[coll, egg.row] {
+//          if aEgg.eggType == egg.eggType {
+//            chain.insert(aEgg)
+//          } else {
+//            break
+//          }
+//        }
+//      }
+//      for coll in reverse(0..<egg.column) {
+//        if let aEgg = level.eggs[coll, egg.row] {
+//          if aEgg.eggType == egg.eggType {
+//            chain.insert(aEgg)
+//          } else {
+//            break
+//          }
+//        }
+//      }
+//    // vertical chain
+//    for row in reverse(0..<rowsNumber) {
+//      if let aEgg = level.eggs[egg.column, row] {
+//        if aEgg.eggType == egg.eggType {
+//          chain.insert(aEgg)
+//        } else {
+//          break
+//        }
+//      }
+//    }
+////    return chain
+    var count = 0
+    let typeToMatch = egg.eggType
+    if typeToMatch == matchType && !egg.mustbeDestroy {
+      count++
+      egg.mustbeDestroy = true
+    }
+    // check up egg if any
+    if egg.row > 1 {
+      let anEgg = level.eggs[egg.column, egg.row - 1]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
         }
       }
     }
-    return chain
+    // check lower egg if any
+    if egg.row < rowsNumber - 1{
+      let anEgg = level.eggs[egg.column, egg.row + 1]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
+        }
+      }
+    }
+    // check uper right
+    if egg.row > 1 && egg.column < columsNumber - 1 {
+      let anEgg = level.eggs[egg.column + 1, egg.row - 1]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
+        }
+      }
+    }
+    // check lower right
+    if egg.row < rowsNumber - 1 && egg.column < columsNumber - 1{
+      let anEgg = level.eggs[egg.column + 1, egg.row + 1]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
+        }
+      }
+    }
+    // check upper left
+    if egg.row > 1 && egg.column > 1 {
+      let anEgg = level.eggs[egg.column - 1, egg.row - 1]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
+        }
+      }
+    }
+    // check lower left
+    if egg.row < rowsNumber - 1 && egg.column > 1{
+      let anEgg = level.eggs[egg.column - 1, egg.row + 1]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
+        }
+      }
+    }
+    // check left
+    if egg.column > 1 {
+      let anEgg = level.eggs[egg.column - 1, egg.row]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
+        }
+      }
+    }
+    // check right
+    if egg.column < columsNumber - 1{
+      let anEgg = level.eggs[egg.column + 1, egg.row]
+      if anEgg != nil {
+        if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
+          count = count + findChainEggs(anEgg!, matchType: typeToMatch)
+        }
+      }
+    }
+    
+    return count
   }
+  
+  
 }
 
 extension GameScene: SKPhysicsContactDelegate {

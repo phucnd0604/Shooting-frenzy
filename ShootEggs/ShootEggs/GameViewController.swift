@@ -70,4 +70,6 @@ class GameViewController: UIViewController {
     sence.addEggs(newCookies)
     sence.addFireEgg()
   }
+
+  
 }
