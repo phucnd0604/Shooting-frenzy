@@ -28,6 +28,7 @@ class EggNote: SKSpriteNode, Hashable {
   var row: Int!
   var eggType: EggType!
   var mustbeDestroy = false
+  var mustbeHold = false
   override var hashValue: Int {
     return row*10 + column
   }

@@ -59,6 +59,9 @@ class GameScene: SKScene {
   var isStart = false
   var setEggs = Set<EggNote>()
   var chainEggs = Set<EggNote>()
+  var lastimteUpdate: CFTimeInterval = 0.1
+  var aimIndicator = SKShapeNode()
+  var pathToDraw: CGMutablePathRef!
   required init?(coder aDecoder: NSCoder) {
     fatalError("initWithCode not impliment")
   }
@@ -73,6 +76,9 @@ class GameScene: SKScene {
     )
     eggsLayer.position = layerPosition
     gameLayer.addChild(eggsLayer)
+    
+    self.addChild(aimIndicator)
+    aimIndicator.hidden = true
     physicsWorld.gravity = CGVectorMake(0, 0)
     physicsWorld.contactDelegate = self
   }
@@ -81,7 +87,20 @@ class GameScene: SKScene {
   }
   override func update(currentTime: CFTimeInterval) {
     /* Called before each frame is rendered */
-    
+    return
+    let delta = currentTime - lastimteUpdate
+    if delta > 2.0 {
+      lastimteUpdate = currentTime
+      for row in 0..<rowsNumber*10 {
+        for column in 0..<columsNumber {
+          if let anEgg = level.eggs[column, row] {
+            if anEgg.position.y < 50 {fatalError("End Game")}
+            let actionMove = SKAction.moveToY(anEgg.position.y - 30, duration: 0)
+            anEgg.runAction(actionMove)
+          }
+        }
+      }
+    }
   }
   func addEggs(eggs: Set<EggNote>) {
     eggsLayer.removeAllChildren()
@@ -147,6 +166,16 @@ class GameScene: SKScene {
   // touch
   
   override func touchesBegan(touches: Set<NSObject>, withEvent event: UIEvent) {
+    let touch = touches.first as! UITouch
+    let touchLocation = touch.locationInNode(self)
+  }
+  
+  override func touchesMoved(touches: Set<NSObject>, withEvent event: UIEvent) {
+    let touch = touches.first as! UITouch
+    let touchLocation = touch.locationInNode(self)
+  }
+  
+  override func touchesEnded(touches: Set<NSObject>, withEvent event: UIEvent) {
     // 1 - Choose one of the touches to work with
     let touch = touches.first as! UITouch
     let touchLocation = touch.locationInNode(self)
@@ -168,88 +197,155 @@ class GameScene: SKScene {
       self.fireEgg.removeFromParent()
       self.addFireEgg()
     })
+    aimIndicator.hidden = true
   }
   // find Chain egg
   // collision
   func fireEggDidCollideWithEgg(fireEgg: EggNote, egg: EggNote) {
     println("Collision")
+    fireEgg.removeAllActions()
+    //    let pos = getNearlyEgg(egg)
+    //    let column = pos.column
+    //    let row = pos.row
     let column = egg.column
     let row = egg.row + 1
-    if row > rowsNumber - 1 {
-      rowsNumber = row
-      for row in 0..<rowsNumber {
-        level.eggs.array.append(nil)
-      }
-    }
+    println(row)
     fireEgg.column = column
     fireEgg.row = row
     fireEgg.position = CGPoint(x: egg.position.x, y: egg.position.y - 30)
-    level.eggs.columns = columsNumber
-    level.eggs.rows = rowsNumber
+//    level.eggs.columns = columsNumber
+//    level.eggs.rows = rowsNumber
     fireEgg.physicsBody?.categoryBitMask = PhysicsCategory.Egg
     fireEgg.physicsBody?.contactTestBitMask = PhysicsCategory.FireEgg
+    fireEgg.physicsBody?.collisionBitMask = PhysicsCategory.None
+    level.eggs[column, row]?.removeFromParent()
     level.eggs[column, row] = fireEgg
     level.set.insert(fireEgg)
     println(fireEgg.position)
-    fireEgg.removeAllActions()
     let actionMove = SKAction.moveTo(fireEgg.position, duration: 0)
-    fireEgg.runAction(actionMove)
-    if fireEgg.position.y < 30 {
-      fatalError("End game")
-      self.removeFromParent()
-      return
-    }
+    fireEgg.runAction(actionMove)    
     let count = findChainEggs(fireEgg, matchType: fireEgg.eggType)
     println("count:\(count)")
     if count > 2 {
-    for anEgg in  level.set {
-      if anEgg.mustbeDestroy {
-      let actionDisApear = SKAction.scaleBy(0.1, duration: 0.25)
-      anEgg.runAction(actionDisApear, completion: {
-        anEgg.removeFromParent()
-      })
+      for row in 0..<rowsNumber*10 {
+        for column in 0..<columsNumber {
+          if let anEgg = level.eggs[column, row] {
+            if anEgg.mustbeDestroy {
+              level.eggs[column, row] = nil
+              let actionDisApear = SKAction.scaleBy(0.1, duration: 0.25)
+              anEgg.runAction(actionDisApear, completion: {
+                anEgg.removeFromParent()
+              })
+            }
+          }
+        }
       }
     }
-    } else {
-      for anEgg in level.set {
-        anEgg.mustbeDestroy = false
+    for row in 0..<rowsNumber*10 {
+      for column in 0..<columsNumber {
+        if let anEgg = level.eggs[column, row] {
+          anEgg.mustbeDestroy = false
+        }
       }
     }
+//    checkAndDropEggs()
     addFireEgg()
   }
+  
+  func getNearlyEgg(egg: EggNote) -> (column: Int, row: Int){
+    // check up egg if any
+    if egg.row > 1 {
+      let anEgg = level.eggs[egg.column, egg.row - 1]
+      if anEgg == nil {
+        return (egg.column, egg.row - 1)
+      }
+    }
+    // check lower egg if any
+    if egg.row < rowsNumber*10 - 1{
+      let anEgg = level.eggs[egg.column, egg.row + 1]
+      if anEgg == nil {
+        return (egg.column, egg.row + 1)
+      }
+    }
+    // check uper right
+    if egg.row > 1 && egg.column < columsNumber - 1 {
+      let anEgg = level.eggs[egg.column + 1, egg.row - 1]
+      if anEgg == nil {
+        return (egg.column + 1, egg.row - 1)
+      }
+    }
+    // check lower right
+    if egg.row < rowsNumber*10 - 1 && egg.column < columsNumber - 1{
+      let anEgg = level.eggs[egg.column + 1, egg.row + 1]
+      if anEgg == nil {
+        return (egg.column + 1, egg.row + 1)
+      }
+    }
+    // check upper left
+    if egg.row > 1 && egg.column > 1 {
+      let anEgg = level.eggs[egg.column - 1, egg.row - 1]
+      if anEgg == nil {
+        return (egg.column - 1, egg.row - 1)
+      }
+    }
+    // check lower left
+    if egg.row < rowsNumber*10 - 1 && egg.column > 1{
+      let anEgg = level.eggs[egg.column - 1, egg.row + 1]
+      if anEgg == nil {
+        return (egg.column - 1, egg.row + 1)
+      }
+    }
+    // check left
+    if egg.column > 1 {
+      let anEgg = level.eggs[egg.column - 1, egg.row]
+      if anEgg == nil {
+        return (egg.column - 1, egg.row)
+      }
+    }
+    // check right
+    if egg.column < columsNumber - 1 {
+      let anEgg = level.eggs[egg.column + 1, egg.row]
+      if anEgg == nil {
+        return (egg.column + 1, egg.row)
+      }
+    }
+    // must be never excute
+    return (0, 0)
+  }
+  
   func findChainEggs(egg: EggNote, matchType: EggType) -> Int{
-//    var chain = Set<EggNote>()
-//    chain.insert(egg)
-//    // horizontal chain
-//      for coll in egg.column..<rowsNumber {
-//        if let aEgg = level.eggs[coll, egg.row] {
-//          if aEgg.eggType == egg.eggType {
-//            chain.insert(aEgg)
-//          } else {
-//            break
-//          }
-//        }
-//      }
-//      for coll in reverse(0..<egg.column) {
-//        if let aEgg = level.eggs[coll, egg.row] {
-//          if aEgg.eggType == egg.eggType {
-//            chain.insert(aEgg)
-//          } else {
-//            break
-//          }
-//        }
-//      }
-//    // vertical chain
-//    for row in reverse(0..<rowsNumber) {
-//      if let aEgg = level.eggs[egg.column, row] {
-//        if aEgg.eggType == egg.eggType {
-//          chain.insert(aEgg)
-//        } else {
-//          break
-//        }
-//      }
-//    }
-////    return chain
+    //    var chain = Set<EggNote>()
+    //    chain.insert(egg)
+    //    // horizontal chain
+    //      for coll in egg.column..<rowsNumber {
+    //        if let aEgg = level.eggs[coll, egg.row] {
+    //          if aEgg.eggType == egg.eggType {
+    //            chain.insert(aEgg)
+    //          } else {
+    //            break
+    //          }
+    //        }
+    //      }
+    //      for coll in reverse(0..<egg.column) {
+    //        if let aEgg = level.eggs[coll, egg.row] {
+    //          if aEgg.eggType == egg.eggType {
+    //            chain.insert(aEgg)
+    //          } else {
+    //            break
+    //          }
+    //        }
+    //      }
+    //    // vertical chain
+    //    for row in reverse(0..<rowsNumber) {
+    //      if let aEgg = level.eggs[egg.column, row] {
+    //        if aEgg.eggType == egg.eggType {
+    //          chain.insert(aEgg)
+    //        } else {
+    //          break
+    //        }
+    //      }
+    //    }
+    ////    return chain
     var count = 0
     let typeToMatch = egg.eggType
     if typeToMatch == matchType && !egg.mustbeDestroy {
@@ -266,7 +362,7 @@ class GameScene: SKScene {
       }
     }
     // check lower egg if any
-    if egg.row < rowsNumber - 1{
+    if egg.row < rowsNumber*10 - 1 {
       let anEgg = level.eggs[egg.column, egg.row + 1]
       if anEgg != nil {
         if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
@@ -284,7 +380,7 @@ class GameScene: SKScene {
       }
     }
     // check lower right
-    if egg.row < rowsNumber - 1 && egg.column < columsNumber - 1{
+    if egg.row < rowsNumber*10 - 1 && egg.column < columsNumber - 1 {
       let anEgg = level.eggs[egg.column + 1, egg.row + 1]
       if anEgg != nil {
         if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
@@ -302,7 +398,7 @@ class GameScene: SKScene {
       }
     }
     // check lower left
-    if egg.row < rowsNumber - 1 && egg.column > 1{
+    if egg.row < rowsNumber*10 - 1 && egg.column > 1 {
       let anEgg = level.eggs[egg.column - 1, egg.row + 1]
       if anEgg != nil {
         if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
@@ -320,7 +416,7 @@ class GameScene: SKScene {
       }
     }
     // check right
-    if egg.column < columsNumber - 1{
+    if egg.column < columsNumber - 1 {
       let anEgg = level.eggs[egg.column + 1, egg.row]
       if anEgg != nil {
         if ((!anEgg!.mustbeDestroy) && (anEgg!.eggType == typeToMatch)) {
@@ -332,7 +428,81 @@ class GameScene: SKScene {
     return count
   }
   
+  func checkAndDropEggs() {
+    holdEggs(0, row: 0)
+    for row in 0..<rowsNumber*10 {
+      for column in 0..<columsNumber {
+        if let anEgg = level.eggs[column, row] {
+          if !anEgg.mustbeHold {
+            let actionMove = SKAction.moveToY(200, duration: 0.5)
+            unowned let weakselft = self
+            anEgg.runAction(actionMove, completion: {
+              anEgg.removeFromParent()
+              weakselft.level.eggs[column, row] = nil
+            })
+          } else {
+            anEgg.mustbeHold = false
+          }
+        }
+      }
+    }
+  }
   
+  func holdEggs(column: Int, row: Int) {
+    let egg = level.eggColumn(column, row: row)
+    if egg == nil {
+      return
+    }
+    egg!.mustbeHold = true
+    // check lower eggs
+    if egg!.row < rowsNumber*10 - 1 {
+      let anEgg = level.eggs[egg!.column, egg!.row + 1]
+      if row >= 19 {
+        println(row)
+      }
+      if anEgg != nil {
+        if (!anEgg!.mustbeHold) {
+          holdEggs(anEgg!.column, row: anEgg!.row)
+        }
+      }
+    }
+    // check lower right
+    if egg!.row < rowsNumber*10 - 1 && egg!.column < columsNumber - 1 {
+      let anEgg = level.eggs[egg!.column + 1, egg!.row + 1]
+      if anEgg != nil {
+        if (!anEgg!.mustbeHold) {
+          holdEggs(anEgg!.column, row: anEgg!.row)
+        }
+      }
+    }
+    // check lower left
+    if egg!.row < rowsNumber*10 - 1 && egg!.column > 1 {
+      let anEgg = level.eggs[egg!.column - 1, egg!.row + 1]
+      if anEgg != nil {
+        if (!anEgg!.mustbeHold) {
+          holdEggs(anEgg!.column, row: anEgg!.row)
+        }
+      }
+    }
+    // check left
+    if egg!.column > 1 {
+      let anEgg = level.eggs[egg!.column - 1, egg!.row]
+      if anEgg != nil {
+        if (!anEgg!.mustbeHold) {
+          holdEggs(anEgg!.column, row: anEgg!.row)
+        }
+      }
+    }
+    // check right
+    if egg!.column < columsNumber - 1 {
+      let anEgg = level.eggs[egg!.column + 1, egg!.row]
+      if anEgg != nil {
+        if (!anEgg!.mustbeHold) {
+          holdEggs(anEgg!.column, row: anEgg!.row)
+        }
+      }
+    }
+  }
 }
 
 extension GameScene: SKPhysicsContactDelegate {
@@ -347,7 +517,7 @@ extension GameScene: SKPhysicsContactDelegate {
       firstObj = contact.bodyB
     }
     if let a = firstObj?.node as? EggNote, let b = secondObj?.node as? EggNote {
-        fireEggDidCollideWithEgg(firstObj!.node as! EggNote, egg: secondObj!.node as! EggNote)
+      fireEggDidCollideWithEgg(firstObj!.node as! EggNote, egg: secondObj!.node as! EggNote)
     }
   }
 }

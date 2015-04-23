@@ -15,8 +15,8 @@ class Level {
   var eggs = Array2D<EggNote>(columns: columsNumber, rows: rowsNumber)
   var set = Set<EggNote>()
   func eggColumn(column: Int, row: Int) -> EggNote? {
-    assert(column >= 0 && column < columsNumber)
-    assert(row >= 0 && row < rowsNumber)
+//    assert(column >= 0 && column < columsNumber)
+//    assert(row >= 0 && row < rowsNumber)
     return eggs[column, row]
   }
   

@@ -7,14 +7,14 @@
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>6CF579B8-E96D-486F-B535-BCC2B8EE46F9</string>
 	<key>IDESourceControlProjectName</key>
-	<string>ShootEggs</string>
+	<string>project</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>FD325438B7AD6852C5C36711E59D419FC9EEA5D2</key>
 		<string>https://github.com/phucnd0604/Shooting-frenzy.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>ShootEggs/ShootEggs.xcodeproj</string>
+	<string>ShootEggs/ShootEggs.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>FD325438B7AD6852C5C36711E59D419FC9EEA5D2</key>
